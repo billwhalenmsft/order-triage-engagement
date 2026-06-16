@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="robots" content="noindex,nofollow"/>
+<title>Order Triage &amp; Management — Engagement Hub (Moen · Fortune Brands)</title>
+<style>
+:root{
+  --navy:#0B1F3A;--blue:#0078D4;--blue-dk:#106EBE;--bg:#f6f8fb;--surface:#ffffff;
+  --surface-soft:#eef2f7;--border:#dfe5ec;--text:#1f2a37;--muted:#5c6b7a;--soft:#8a97a6;
+  --accent-soft:rgba(0,120,212,0.08);--green:#107c10;--amber:#935200;
+  --shadow:0 1px 2px rgba(11,31,58,.06),0 8px 24px rgba(11,31,58,.08);
+}
+@media (prefers-color-scheme: dark){
+  :root{--navy:#0B1F3A;--blue:#4da6ff;--blue-dk:#7cc0ff;--bg:#0e141b;--surface:#161d26;
+    --surface-soft:#1d2630;--border:#2a3642;--text:#e6edf3;--muted:#9fb0c0;--soft:#6f8090;
+    --accent-soft:rgba(77,166,255,.12);--green:#4ade80;--amber:#fbbf24;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.45);}
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Aptos,Calibri,-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}
+.hero{background:linear-gradient(135deg,var(--navy) 0%,#13315c 100%);color:#fff;padding:56px 40px 48px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-80px;top:-80px;width:320px;height:320px;border-radius:50%;background:rgba(255,255,255,.05)}
+.ge{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.ge .ring{width:42px;height:42px;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;letter-spacing:.5px}
+.ge .lbl{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#9fb4cc;font-weight:700}
+.hero h1{font-size:40px;line-height:1.15;margin-bottom:12px;max-width:880px}
+.hero p{font-size:18px;color:#c9d6e5;max-width:780px}
+.hero .meta{display:flex;flex-wrap:wrap;gap:18px;margin-top:24px;font-size:13px;color:#9fb4cc}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+.section{padding:44px 0;border-bottom:1px solid var(--border)}
+.section:last-child{border-bottom:none}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);margin-bottom:8px}
+.h2{font-size:26px;font-weight:800;color:var(--text);line-height:1.2}
+.lead{font-size:15px;color:var(--muted);margin-top:8px;max-width:780px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:18px;margin-top:26px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column}
+.card .top{height:128px;background:linear-gradient(135deg,var(--accent-soft),var(--surface-soft));display:flex;align-items:center;justify-content:center;font-size:46px}
+.card .body{padding:18px 18px 8px;flex:1}
+.card .kind{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--soft)}
+.card .name{font-size:18px;font-weight:700;margin:4px 0 6px}
+.card .desc{font-size:13px;color:var(--muted)}
+.card .foot{padding:14px 18px 18px;display:flex;gap:10px}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:700;border:1px solid var(--border);cursor:pointer}
+.btn-primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn-primary:hover{background:var(--blue-dk);text-decoration:none}
+.btn-ghost{background:var(--surface-soft);color:var(--text)}
+.btn-ghost:hover{border-color:var(--blue);color:var(--blue);text-decoration:none}
+.videowrap{margin-top:26px;background:#000;border-radius:14px;overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--border)}
+.videowrap video{width:100%;display:block}
+.changes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:24px}
+.chg{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.chg .t{font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px}
+.chg .t .dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex:none}
+.chg .d{font-size:13px;color:var(--muted);margin-top:6px}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px 24px;box-shadow:var(--shadow);margin-top:24px}
+.cmp{width:100%;border-collapse:collapse;font-size:14px}
+.cmp th,.cmp td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+.cmp th{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--soft);font-weight:700}
+.cmp tr:last-child td{border-bottom:none}
+.cmp td.dim{color:var(--muted)}
+.cmp .y{color:var(--green);font-weight:700}
+.arch{width:100%;height:auto;background:var(--surface-soft);border:1px solid var(--border);border-radius:12px;margin-top:4px}
+.archnote{font-size:13px;color:var(--muted);margin-top:12px}
+.cta{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:30px;text-align:center;box-shadow:var(--shadow);margin-top:8px}
+.cta h3{font-size:22px;font-weight:800}
+.cta p{font-size:14px;color:var(--muted);margin:8px auto 20px;max-width:560px}
+.note{font-size:12px;color:var(--soft);margin-top:14px}
+.footer{padding:28px 0 40px;text-align:center;font-size:12px;color:var(--soft);line-height:1.7}
+.tag{display:inline-block;font-size:11px;font-weight:700;border-radius:20px;padding:3px 10px;background:var(--accent-soft);color:var(--blue)}
+@media (max-width:560px){.hero{padding:40px 22px 36px}.hero h1{font-size:30px}.hero p{font-size:16px}}
+</style>
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap">
+      <div class="ge"><div class="ring">M</div><div class="lbl">Moen · Fortune Brands &nbsp;×&nbsp; Microsoft</div></div>
+      <h1>Order Triage &amp; Management — Engagement Hub</h1>
+      <p>Turn inbound purchase orders — in the email body or a PDF — into validated Dynamics&nbsp;365 sales orders, with AI extraction and human-in-the-loop review. Watch the 2-minute recap, open the working prototype, and tell us what would make this replace Esker for your team.</p>
+      <div class="meta">
+        <span>Prepared for Moen · Fortune Brands</span>
+        <span>Microsoft Solution Engineering</span>
+        <span>Updated June 2026</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+
+    <!-- WATCH -->
+    <section class="section">
+      <div class="eyebrow">Start here</div>
+      <div class="h2">A 2-minute recap</div>
+      <div class="lead">The full flow, end to end — an order arrives, AI reads it, validation runs against your customers and products, the order is created, and payment-card data is protected. Best watched first, then open the prototype below.</div>
+      <div class="videowrap">
+        <video controls preload="metadata" src="video/order-triage-demo.mp4">
+          Your browser can't play embedded video — <a href="video/order-triage-demo.mp4">download the recap (MP4)</a>.
+        </video>
+      </div>
+      <div class="note">Best viewed full-screen. If the video doesn't load, use the “Watch” card below.</div>
+    </section>
+
+    <!-- RESOURCES -->
+    <section class="section">
+      <div class="eyebrow">Explore</div>
+      <div class="h2">Your resources</div>
+      <div class="lead">Everything from the walkthrough, in one place.</div>
+      <div class="cards">
+        <article class="card">
+          <div class="top">🎬</div>
+          <div class="body">
+            <div class="kind">Video · 2 min</div>
+            <div class="name">Narrated demo recap</div>
+            <div class="desc">The fast overview — channel capture, AI extraction, validation, exception handling, and one-click card protect.</div>
+          </div>
+          <div class="foot"><a class="btn btn-primary" href="video/order-triage-demo.mp4">▶ Watch</a></div>
+        </article>
+        <article class="card">
+          <div class="top">🖱️</div>
+          <div class="body">
+            <div class="kind">Interactive · prototype</div>
+            <div class="name">Try the workbench</div>
+            <div class="desc">Click through the live triage queue — review a PO side-by-side, index the fields, validate, and submit. Toggle standalone ⟷ embedded-in-Dynamics.</div>
+          </div>
+          <div class="foot"><a class="btn btn-primary" href="prototype/order-triage-prototype.html">▶ Open prototype</a></div>
+        </article>
+        <article class="card">
+          <div class="top">📄</div>
+          <div class="body">
+            <div class="kind">Overview · 1 page</div>
+            <div class="name">Capability summary</div>
+            <div class="desc">What it does, before/after, the outcomes we're targeting, the full Microsoft-vs-Esker comparison, and the architecture — print-ready.</div>
+          </div>
+          <div class="foot"><a class="btn btn-ghost" href="order-triage-1pager.html">⤓ Open 1-pager</a></div>
+        </article>
+      </div>
+    </section>
+
+    <!-- WHAT IT DOES -->
+    <section class="section">
+      <div class="eyebrow">What it does</div>
+      <div class="h2">From inbox to validated order — automatically</div>
+      <div class="lead">An order lands, AI extracts the details, the system validates the customer and products, and only genuine exceptions reach a person.</div>
+      <div class="changes">
+        <div class="chg"><div class="t"><span class="dot"></span>Captures inbound orders</div><div class="d">Watches your order mailboxes and picks up POs from the email body or a PDF attachment, automatically.</div></div>
+        <div class="chg"><div class="t"><span class="dot"></span>Reads the PO with AI</div><div class="d">Extracts PO number, customer, ship-to, dates, and line items — with a confidence score on every field.</div></div>
+        <div class="chg"><div class="t"><span class="dot"></span>Validates against your data</div><div class="d">Matches the customer and each product, and catches duplicate POs before anything is created.</div></div>
+        <div class="chg"><div class="t"><span class="dot"></span>Side-by-side review</div><div class="d">The original document next to the extracted fields, so a processor can confirm at a glance and click to index.</div></div>
+        <div class="chg"><div class="t"><span class="dot"></span>Creates the order, routes exceptions</div><div class="d">Clean orders are created automatically; only true exceptions reach a person — optionally as a Customer Service case.</div></div>
+        <div class="chg"><div class="t"><span class="dot"></span>Protects card data</div><div class="d">If a PO carries a payment card, one click masks the number and security code and stores only the protected copy.</div></div>
+      </div>
+    </section>
+
+    <!-- WHY MICROSOFT-NATIVE -->
+    <section class="section">
+      <div class="eyebrow">Why Microsoft-native</div>
+      <div class="h2">The same outcomes — on the stack you already own</div>
+      <div class="lead">The decision-relevant contrasts vs. a third-party order-automation tool. The full breakdown is in the 1-pager.</div>
+      <div class="panel">
+        <table class="cmp">
+          <thead><tr><th style="width:26%">Technique</th><th>Esker (third-party tool)</th><th>Microsoft-native (this approach)</th></tr></thead>
+          <tbody>
+            <tr><td>Where it runs</td><td class="dim">Separate ISV platform + license</td><td><span class="y">On the Microsoft stack you already own</span></td></tr>
+            <tr><td>Where data lives</td><td class="dim">In the third-party system</td><td><span class="y">In your Dynamics 365 / Dataverse</span></td></tr>
+            <tr><td>Working surface</td><td class="dim">Their separate UI</td><td><span class="y">Inside Customer Service</span> — or standalone, your choice</td></tr>
+            <tr><td>Cost model</td><td class="dim">Additional ISV license</td><td><span class="y">Rides existing entitlements</span> — no new third-party license</td></tr>
+            <tr><td>Card data (PCI)</td><td class="dim">Varies</td><td><span class="y">One-click protect</span> — masks &amp; stores the protected copy only</td></tr>
+          </tbody>
+        </table>
+        <div class="note">Comparison describes the <strong>technique and platform fit</strong>, not a specific competitor's contract terms — the intent is to show the same outcomes delivered natively on Microsoft. Full table in the <a href="order-triage-1pager.html#vs">1-pager</a>.</div>
+      </div>
+    </section>
+
+    <!-- ARCHITECTURE -->
+    <section class="section">
+      <div class="eyebrow">How it fits together</div>
+      <div class="h2">The shape of the solution</div>
+      <div class="lead">Built with Microsoft tooling — no third-party platform in the path.</div>
+      <div class="panel">
+        <svg class="arch" viewBox="0 0 920 300" role="img" aria-label="Order Triage architecture">
+          <defs>
+            <marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#7a93ad"/></marker>
+            <style>
+              .ab{fill:#fff;stroke:#cdd8e6;stroke-width:1.5;}
+              .abl{fill:#003a5d;} .at{font:600 12.5px 'Segoe UI';fill:#1a1f2c;} .ats{font:500 10.5px 'Segoe UI';fill:#5b6577;}
+              .atw{font:700 12.5px 'Segoe UI';fill:#fff;} .aln{stroke:#7a93ad;stroke-width:1.6;fill:none;}
+              .agrp{fill:#eef4fb;stroke:#d4e2f0;stroke-width:1.2;}
+            </style>
+          </defs>
+          <!-- intake -->
+          <rect class="ab" x="14" y="112" width="120" height="64" rx="10"/>
+          <text class="at" x="74" y="138" text-anchor="middle">Order mailbox</text>
+          <text class="ats" x="74" y="156" text-anchor="middle">email · PDF</text>
+          <!-- triage group -->
+          <rect class="agrp" x="170" y="40" width="430" height="210" rx="12"/>
+          <text class="ats" x="185" y="60">Microsoft-native triage layer</text>
+          <rect class="ab" x="190" y="78" width="180" height="56" rx="10"/>
+          <text class="at" x="280" y="100" text-anchor="middle">AI extraction</text>
+          <text class="ats" x="280" y="117" text-anchor="middle">AI Builder · Azure OpenAI</text>
+          <rect class="ab" x="190" y="158" width="180" height="56" rx="10"/>
+          <text class="at" x="280" y="180" text-anchor="middle">Validation</text>
+          <text class="ats" x="280" y="197" text-anchor="middle">customer · product · duplicate</text>
+          <rect class="ab" x="404" y="78" width="176" height="56" rx="10"/>
+          <text class="at" x="492" y="100" text-anchor="middle">Triage workbench</text>
+          <text class="ats" x="492" y="117" text-anchor="middle">review · index · protect</text>
+          <rect class="ab" x="404" y="158" width="176" height="56" rx="10"/>
+          <text class="at" x="492" y="180" text-anchor="middle">Exceptions</text>
+          <text class="ats" x="492" y="197" text-anchor="middle">person · optional Case</text>
+          <!-- order store -->
+          <rect class="abl" x="640" y="84" width="120" height="56" rx="10"/>
+          <text class="atw" x="700" y="106" text-anchor="middle">Order created</text>
+          <text class="ats" x="700" y="123" text-anchor="middle" fill="#bcd6ee">Dynamics 365</text>
+          <!-- dashboard -->
+          <rect class="ab" x="640" y="166" width="120" height="56" rx="10"/>
+          <text class="at" x="700" y="188" text-anchor="middle">Dashboard</text>
+          <text class="ats" x="700" y="205" text-anchor="middle">volume · SLA</text>
+          <!-- arrows -->
+          <path class="aln" d="M134,144 L190,128" marker-end="url(#ah)"/>
+          <path class="aln" d="M280,134 L280,158" marker-end="url(#ah)"/>
+          <path class="aln" d="M370,186 L404,186" marker-end="url(#ah)"/>
+          <path class="aln" d="M370,106 L404,106" marker-end="url(#ah)"/>
+          <path class="aln" d="M580,106 L640,108" marker-end="url(#ah)"/>
+          <path class="aln" d="M580,186 L640,192" marker-end="url(#ah)"/>
+          <path class="aln" d="M700,140 L700,166" marker-end="url(#ah)"/>
+        </svg>
+        <div class="archnote">Email lands → AI extracts → validated against your Dynamics&nbsp;365 customers &amp; products → clean orders are created and exceptions routed to a person. A live dashboard tracks volume, processing time, and SLA. The triage workbench runs standalone or embedded in Customer Service.</div>
+      </div>
+    </section>
+
+    <!-- FEEDBACK CTA -->
+    <section class="section">
+      <div class="cta">
+        <span class="tag">Your turn</span>
+        <h3>What would make this replace Esker for your team?</h3>
+        <p>This is a prototype shaped around your workflow — tell us what's right, what's missing, and what you'd want in front of your leadership team.</p>
+        <a class="btn btn-primary" id="feedbackBtn" href="#">✉ Share feedback</a>
+        <div class="note">Or reply to the email thread with your Microsoft team.</div>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="footer">
+    Prepared by Microsoft Solution Engineering for Moen · Fortune Brands. Informational use; this is a prototype with illustrative data, pending connection to your live order channels and Dynamics 365 environment.<br>© Microsoft 2026.
+  </div>
+
+  <script>
+    // Feedback mailto — edit recipient/subject as needed before sharing.
+    (function(){
+      var to = "billwhalen@microsoft.com";
+      var subject = encodeURIComponent("Order Triage & Management — feedback");
+      var body = encodeURIComponent("A few thoughts on the Order Triage walkthrough:\n\n- What's right:\n- What's missing:\n- For the leadership demo, we'd want:\n");
+      var href = "mailto:" + to + "?subject=" + subject + "&body=" + body;
+      document.getElementById('feedbackBtn').setAttribute('href', href);
+    })();
+  </script>
+</body>
+</html>

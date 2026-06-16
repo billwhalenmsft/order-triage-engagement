@@ -1,0 +1,903 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Order Triage &amp; Management — Workbench Prototype (Moen / Fortune Brands)</title>
+<style>
+  :root {
+    --bg: #f3f6fb;
+    --panel: #ffffff;
+    --border: #e2e6ee;
+    --border-strong: #d0d4dc;
+    --text: #1a1f2c;
+    --muted: #5b6577;
+    --muted-2: #8a8f9a;
+    --brand: #0067c0;
+    --brand-dark: #004e8c;
+    --brand-light: #deecf9;
+    --ok: #107c10;
+    --ok-bg: #dcfce7;
+    --warn: #92400e;
+    --warn-bg: #fef3c7;
+    --danger: #b42318;
+    --danger-bg: #fde8e6;
+    --moen: #003a5d;        /* Moen deep navy */
+    --moen-accent: #7a9cc6;
+    --shadow: 0 1px 3px rgba(16,24,40,.08), 0 1px 2px rgba(16,24,40,.06);
+    --shadow-lg: 0 8px 28px rgba(16,24,40,.16);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; height:100%; background:var(--bg); font-family:'Segoe UI', system-ui, sans-serif; color:var(--text); font-size:13px; }
+  button { font-family:inherit; }
+
+  /* ───────────────────────── Mode toggle (Standalone vs Embedded) ───────────────────────── */
+  .mode-bar {
+    display:flex; align-items:center; gap:14px; padding:8px 16px;
+    background:#11151c; color:#d7dce4; font-size:12px;
+  }
+  .mode-bar .mb-label { font-weight:600; color:#9aa3b2; text-transform:uppercase; letter-spacing:.5px; font-size:10.5px; }
+  .mode-bar .seg { display:flex; background:#1c2430; border-radius:8px; padding:3px; }
+  .mode-bar .seg button {
+    border:0; background:transparent; color:#9aa3b2; padding:6px 14px; border-radius:6px;
+    font-size:12px; font-weight:600; cursor:pointer;
+  }
+  .mode-bar .seg button.active { background:var(--brand); color:#fff; }
+  .mode-bar .mb-note { margin-left:auto; color:#6b7585; font-size:11px; }
+  .mode-bar .mb-note b { color:#aeb6c2; }
+
+  /* ───────────────────────── D365 Customer Service shell (shown only in embedded mode) ───────────────────────── */
+  .d365-shell { display:none; }
+  body.embedded .d365-shell { display:block; }
+  .d365-topbar {
+    display:flex; align-items:center; gap:14px; height:48px; padding:0 14px;
+    background:var(--brand-dark); color:#fff;
+  }
+  .d365-topbar .waffle { font-size:18px; opacity:.9; cursor:pointer; }
+  .d365-topbar .app-name { font-size:15px; font-weight:600; }
+  .d365-topbar .app-name .env { font-weight:400; opacity:.7; font-size:12px; margin-left:8px; }
+  .d365-topbar .spacer { flex:1; }
+  .d365-topbar .top-ico { width:32px; height:32px; display:grid; place-items:center; border-radius:6px; cursor:pointer; font-size:15px; }
+  .d365-topbar .top-ico:hover { background:rgba(255,255,255,.12); }
+  .d365-topbar .avatar { width:30px; height:30px; border-radius:50%; background:#8a6d3b; display:grid; place-items:center; font-size:12px; font-weight:700; }
+
+  .d365-body { display:flex; }
+  .d365-sitemap {
+    width:220px; background:#fff; border-right:1px solid var(--border); padding:10px 0; min-height:calc(100vh - 96px);
+    flex:0 0 220px;
+  }
+  .d365-sitemap .area-label { padding:8px 16px 4px; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--muted-2); }
+  .d365-sitemap .nav-item {
+    display:flex; align-items:center; gap:10px; padding:9px 16px; font-size:13px; color:#3b4452; cursor:pointer; border-left:3px solid transparent;
+  }
+  .d365-sitemap .nav-item:hover { background:#f5f8fc; }
+  .d365-sitemap .nav-item.active { background:var(--brand-light); color:var(--brand-dark); border-left-color:var(--brand); font-weight:600; }
+  .d365-sitemap .nav-item .ico { font-size:15px; width:18px; text-align:center; }
+  .d365-content { flex:1 1 auto; min-width:0; }
+
+  body.standalone .d365-content,
+  body.standalone .workbench { } /* no-op, just clarity */
+
+  /* ───────────────────────── Workbench (the Power App canvas — shared by both modes) ───────────────────────── */
+  .workbench { display:flex; flex-direction:column; }
+  /* Standalone app header (Power Apps standalone player chrome) */
+  .sa-header { display:none; }
+  body.standalone .sa-header {
+    display:flex; align-items:center; gap:12px; height:52px; padding:0 18px;
+    background:linear-gradient(90deg,var(--moen) 0%, #00557f 100%); color:#fff;
+  }
+  .sa-header .logo {
+    font-weight:800; letter-spacing:.5px; font-size:16px; display:flex; align-items:center; gap:9px;
+  }
+  .sa-header .logo .mark {
+    width:26px; height:26px; border-radius:6px; background:#fff; color:var(--moen); display:grid; place-items:center; font-size:14px; font-weight:900;
+  }
+  .sa-header .title { font-size:14px; opacity:.92; border-left:1px solid rgba(255,255,255,.3); padding-left:12px; }
+  .sa-header .spacer { flex:1; }
+  .sa-header .sa-chip { background:rgba(255,255,255,.16); padding:4px 11px; border-radius:999px; font-size:11.5px; }
+
+  /* KPI strip */
+  .kpi-strip {
+    display:flex; gap:12px; padding:12px 18px; background:#fff; border-bottom:1px solid var(--border);
+    overflow-x:auto;
+  }
+  .kpi {
+    flex:1 1 0; min-width:150px; border:1px solid var(--border); border-radius:10px; padding:10px 14px;
+    background:linear-gradient(180deg,#fff 0%,#fafcff 100%);
+  }
+  .kpi .k-label { font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; color:var(--muted-2); }
+  .kpi .k-value { font-size:22px; font-weight:800; color:var(--text); margin-top:3px; line-height:1; }
+  .kpi .k-value small { font-size:12px; font-weight:600; color:var(--muted); }
+  .kpi .k-sub { font-size:10.5px; color:var(--ok); margin-top:4px; font-weight:600; }
+  .kpi .k-sub.warn { color:var(--warn); }
+
+  /* 3-column triage layout */
+  .triage {
+    display:grid; grid-template-columns: 300px 1fr 380px; gap:0; flex:1 1 auto; min-height:0;
+  }
+  .col { overflow-y:auto; }
+  .col.queue { background:#fff; border-right:1px solid var(--border); }
+  .col.viewer { background:#eef1f6; }
+  .col.index { background:#fff; border-left:1px solid var(--border); }
+
+  /* Queue */
+  .q-head { display:flex; align-items:center; gap:8px; padding:13px 16px; border-bottom:1px solid var(--border); position:sticky; top:0; background:#fff; z-index:2; }
+  .q-head .q-title { font-size:14px; font-weight:700; flex:1; }
+  .q-head .q-count { background:var(--brand-light); color:var(--brand); font-size:11px; font-weight:700; padding:1px 9px; border-radius:999px; }
+  .q-tabs { display:flex; gap:6px; padding:8px 12px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+  .q-tab { padding:4px 10px; border-radius:999px; background:#eef2f7; color:#475467; font-size:11px; font-weight:600; cursor:pointer; }
+  .q-tab.active { background:var(--brand); color:#fff; }
+  .q-item { padding:11px 14px; border-bottom:1px solid var(--border); cursor:pointer; border-left:3px solid transparent; }
+  .q-item:hover { background:#f8fafc; }
+  .q-item.active { background:#eaf3fb; border-left-color:var(--brand); }
+  .q-item .qi-top { display:flex; justify-content:space-between; align-items:center; gap:6px; }
+  .q-item .qi-from { font-size:12.5px; font-weight:700; color:#1f2937; }
+  .q-item .qi-when { font-size:10.5px; color:var(--muted-2); white-space:nowrap; }
+  .q-item .qi-po { font-size:11.5px; color:#475467; margin-top:3px; }
+  .q-item .qi-meta { display:flex; gap:6px; align-items:center; margin-top:6px; flex-wrap:wrap; }
+  .doc-chip { display:inline-flex; align-items:center; gap:4px; font-size:10px; font-weight:600; padding:1px 7px; border-radius:6px; background:#eef2f7; color:#475467; }
+  .doc-chip.pdf { background:#fde8e6; color:#b42318; }
+  .doc-chip.email { background:#e0edff; color:#1d4ed8; }
+
+  /* status pill */
+  .st { display:inline-block; padding:1px 9px; border-radius:999px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.3px; }
+  .st.new { background:#eef2f7; color:#475467; }
+  .st.extracted { background:var(--brand-light); color:var(--brand); }
+  .st.validated { background:#e6f0ff; color:#1d4ed8; }
+  .st.exception { background:var(--danger-bg); color:var(--danger); }
+  .st.created { background:var(--ok-bg); color:var(--ok); }
+
+  /* Viewer toolbar */
+  .v-toolbar {
+    display:flex; align-items:center; gap:8px; padding:10px 16px; background:#fff; border-bottom:1px solid var(--border);
+    position:sticky; top:0; z-index:2;
+  }
+  .v-toolbar .v-title { font-size:13px; font-weight:700; flex:1; }
+  .v-toolbar .v-title small { font-weight:500; color:var(--muted); }
+  .vbtn { padding:6px 12px; border-radius:7px; background:#fff; border:1px solid var(--border-strong); font-size:12px; font-weight:600; color:#475467; cursor:pointer; display:inline-flex; gap:6px; align-items:center; }
+  .vbtn:hover { border-color:var(--brand); color:var(--brand); }
+  .vbtn.primary { background:linear-gradient(180deg,#1184e0,#0067c0); color:#fff; border-color:transparent; }
+  .vbtn.primary:hover { color:#fff; filter:brightness(1.05); }
+  .vbtn:disabled { opacity:.5; cursor:not-allowed; }
+
+  .v-stage { padding:20px; display:flex; justify-content:center; }
+  /* The "document" — a rendered PO that mimics a scanned/emailed purchase order */
+  .doc {
+    width:100%; max-width:640px; background:#fff; border:1px solid var(--border-strong); border-radius:6px;
+    box-shadow:var(--shadow-lg); position:relative; padding:34px 38px; font-family:'Segoe UI', sans-serif; color:#222;
+  }
+  .doc .doc-letterhead { display:flex; justify-content:space-between; align-items:flex-start; border-bottom:3px solid #243b53; padding-bottom:14px; }
+  .doc .doc-letterhead .co { font-size:20px; font-weight:800; color:#243b53; letter-spacing:.5px; }
+  .doc .doc-letterhead .co small { display:block; font-size:11px; font-weight:500; color:#64748b; letter-spacing:0; margin-top:2px; }
+  .doc .doc-letterhead .po-box { text-align:right; }
+  .doc .doc-letterhead .po-box .lbl { font-size:10px; text-transform:uppercase; letter-spacing:1px; color:#64748b; }
+  .doc .doc-letterhead .po-box .num { font-size:18px; font-weight:800; color:#b42318; }
+  .doc .doc-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin:18px 0; font-size:12px; }
+  .doc .doc-grid .box .h { font-size:10px; text-transform:uppercase; letter-spacing:.8px; color:#64748b; font-weight:700; margin-bottom:4px; }
+  .doc .doc-grid .box .l { line-height:1.5; color:#334155; }
+  .doc table.lines { width:100%; border-collapse:collapse; margin-top:6px; font-size:11.5px; }
+  .doc table.lines th { background:#243b53; color:#fff; text-align:left; padding:6px 8px; font-size:10px; text-transform:uppercase; letter-spacing:.4px; }
+  .doc table.lines td { padding:6px 8px; border-bottom:1px solid #e5e9f0; }
+  .doc table.lines tr:nth-child(even) td { background:#f7f9fc; }
+  .doc .doc-notes { margin-top:16px; font-size:11.5px; color:#475467; border-top:1px dashed #cbd5e1; padding-top:10px; }
+  .doc .doc-notes .h { font-size:10px; text-transform:uppercase; letter-spacing:.8px; color:#64748b; font-weight:700; }
+  /* email-style body doc variant */
+  .doc.email-doc { font-family:'Segoe UI', sans-serif; }
+  .doc.email-doc .em-head { font-size:12px; color:#475467; border-bottom:1px solid #e5e9f0; padding-bottom:10px; margin-bottom:14px; }
+  .doc.email-doc .em-head b { color:#1a1f2c; }
+  .doc.email-doc .em-body { font-size:13px; line-height:1.6; white-space:pre-wrap; }
+
+  /* click-to-index hotspots */
+  .hot {
+    cursor:pointer; border-radius:3px; transition: background .15s, box-shadow .15s; position:relative;
+    padding:1px 3px; margin:-1px -3px;
+  }
+  .hot:hover { background:rgba(0,103,192,.12); box-shadow:0 0 0 1.5px rgba(0,103,192,.5); }
+  .hot.captured { background:rgba(16,124,16,.13); box-shadow:0 0 0 1.5px rgba(16,124,16,.45); }
+  .hot.pulse { animation:pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse {
+    0%,100% { box-shadow:0 0 0 1.5px rgba(0,103,192,.35); background:rgba(0,103,192,.08); }
+    50% { box-shadow:0 0 0 3px rgba(0,103,192,.55); background:rgba(0,103,192,.18); }
+  }
+
+  /* Index / extraction panel */
+  .idx-head { padding:13px 16px; border-bottom:1px solid var(--border); position:sticky; top:0; background:#fff; z-index:2; }
+  .idx-head .ih-title { font-size:14px; font-weight:700; display:flex; align-items:center; gap:8px; }
+  .idx-head .ih-sub { font-size:11px; color:var(--muted); margin-top:3px; }
+  .idx-section { padding:12px 16px; border-bottom:1px solid var(--border); }
+  .idx-section .sec-label { font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--muted-2); margin-bottom:9px; display:flex; align-items:center; gap:6px; }
+
+  .fld { margin-bottom:11px; }
+  .fld label { display:block; font-size:11px; font-weight:600; color:var(--muted); margin-bottom:3px; }
+  .fld .input {
+    display:flex; align-items:center; gap:6px; border:1px solid var(--border-strong); border-radius:7px; padding:7px 10px; background:#fff;
+    transition: border-color .15s, background .25s;
+  }
+  .fld .input .v { flex:1; font-size:13px; color:#1a1f2c; min-height:17px; }
+  .fld .input .v.empty { color:var(--muted-2); font-style:italic; }
+  .fld .input.filled { background:#f3fbf4; border-color:#bfe6c3; }
+  .fld .input.flash { animation:flash .7s ease; }
+  @keyframes flash { 0% { background:#fff6cc; } 100% { background:#f3fbf4; } }
+  .conf { font-size:9.5px; font-weight:800; padding:1px 6px; border-radius:5px; white-space:nowrap; }
+  .conf.hi { background:var(--ok-bg); color:var(--ok); }
+  .conf.med { background:var(--warn-bg); color:var(--warn); }
+  .conf.lo { background:var(--danger-bg); color:var(--danger); }
+
+  /* validation chips */
+  .vchecks { display:flex; flex-direction:column; gap:8px; }
+  .vcheck { display:flex; align-items:center; gap:10px; padding:9px 11px; border-radius:8px; border:1px solid var(--border); background:#fafbfd; }
+  .vcheck .vc-ico { width:22px; height:22px; border-radius:50%; display:grid; place-items:center; font-size:12px; font-weight:800; flex:0 0 22px; background:#eef2f7; color:var(--muted); }
+  .vcheck.ok .vc-ico { background:var(--ok-bg); color:var(--ok); }
+  .vcheck.fail .vc-ico { background:var(--danger-bg); color:var(--danger); }
+  .vcheck .vc-body { flex:1; }
+  .vcheck .vc-title { font-size:12px; font-weight:700; }
+  .vcheck .vc-detail { font-size:11px; color:var(--muted); margin-top:1px; }
+  .vcheck.pending .vc-ico { animation:spin 1s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* exception / copilot assist */
+  .copilot {
+    margin:0 16px 14px; border:1px solid #c7b8f0; border-radius:10px; background:linear-gradient(180deg,#f7f3ff,#fff);
+    overflow:hidden;
+  }
+  .copilot .cp-head { display:flex; align-items:center; gap:8px; padding:10px 13px; background:#efe8ff; font-size:12px; font-weight:700; color:#5b2bb3; }
+  .copilot .cp-body { padding:11px 13px; font-size:12px; color:#3b3357; line-height:1.5; }
+  .copilot .cp-body .sugg { background:#fff; border:1px solid #e3d9f7; border-radius:8px; padding:9px 11px; margin-top:9px; }
+  .copilot .cp-body .sugg b { color:#5b2bb3; }
+  .cp-actions { display:flex; gap:8px; margin-top:11px; flex-wrap:wrap; }
+  .cp-btn { padding:6px 12px; border-radius:7px; font-size:11.5px; font-weight:700; cursor:pointer; border:1px solid transparent; }
+  .cp-btn.apply { background:#6d28d9; color:#fff; }
+  .cp-btn.apply:hover { filter:brightness(1.08); }
+  .cp-btn.ghost { background:#fff; border-color:#cfc2ee; color:#5b2bb3; }
+
+  /* footer action bar of index panel */
+  .idx-actions { padding:14px 16px; display:flex; gap:8px; position:sticky; bottom:0; background:#fff; border-top:1px solid var(--border); }
+  .idx-actions .vbtn { flex:1; justify-content:center; }
+
+  /* toast */
+  .toast-wrap { position:fixed; bottom:22px; right:22px; display:flex; flex-direction:column; gap:10px; z-index:100; }
+  .toast {
+    background:#11331b; color:#d7f5dd; padding:13px 16px; border-radius:10px; box-shadow:var(--shadow-lg); font-size:13px;
+    display:flex; gap:10px; align-items:flex-start; max-width:360px; animation:slidein .3s ease;
+    border-left:4px solid #34d058;
+  }
+  .toast .t-title { font-weight:800; }
+  .toast .t-sub { opacity:.85; font-size:11.5px; margin-top:2px; }
+  @keyframes slidein { from { transform:translateX(20px); opacity:0; } to { transform:none; opacity:1; } }
+
+  .empty-state { padding:60px 30px; text-align:center; color:var(--muted-2); }
+  .empty-state .es-ico { font-size:42px; opacity:.4; }
+
+  .hint-banner {
+    margin:14px 18px 0; padding:9px 14px; border-radius:8px; background:#fffbeb; border:1px solid #fde68a; color:#92400e;
+    font-size:11.5px; display:flex; gap:8px; align-items:center;
+  }
+  body.embedded .sa-header { display:none; }
+</style>
+</head>
+<body class="standalone">
+
+  <!-- ════════ Mode toggle (demo control — not part of the shipped app) ════════ -->
+  <div class="mode-bar">
+    <span class="mb-label">Demo view</span>
+    <div class="seg">
+      <button id="modeStandalone" class="active" onclick="setMode('standalone')">▢ Standalone app</button>
+      <button id="modeEmbedded" onclick="setMode('embedded')">⊞ Embedded in Dynamics 365 Customer Service</button>
+    </div>
+    <span class="mb-note">Same Power App — runs as a standalone player <b>or</b> embedded as a custom page inside D365 CS. Microsoft-native order automation.</span>
+  </div>
+
+  <!-- ════════ D365 Customer Service chrome (embedded mode only) ════════ -->
+  <div class="d365-shell">
+    <div class="d365-topbar">
+      <span class="waffle">▦</span>
+      <span class="app-name">Customer Service workspace <span class="env">· Moen — Master CE Mfg</span></span>
+      <span class="spacer"></span>
+      <span class="top-ico">🔍</span>
+      <span class="top-ico">＋</span>
+      <span class="top-ico">⚙</span>
+      <span class="top-ico">？</span>
+      <span class="avatar">BW</span>
+    </div>
+    <div class="d365-body">
+      <nav class="d365-sitemap">
+        <div class="area-label">Service</div>
+        <div class="nav-item"><span class="ico">🏠</span> Dashboards</div>
+        <div class="nav-item"><span class="ico">📋</span> Cases</div>
+        <div class="nav-item"><span class="ico">📧</span> Queues</div>
+        <div class="area-label">Order automation</div>
+        <div class="nav-item active"><span class="ico">📥</span> Order Triage</div>
+        <div class="nav-item"><span class="ico">⚠️</span> Exceptions</div>
+        <div class="nav-item"><span class="ico">📦</span> SAP Orders</div>
+        <div class="nav-item"><span class="ico">📊</span> Triage Analytics</div>
+        <div class="area-label">Customers</div>
+        <div class="nav-item"><span class="ico">🏢</span> Accounts</div>
+        <div class="nav-item"><span class="ico">🛒</span> Products</div>
+      </nav>
+      <div class="d365-content" id="d365Content">
+        <!-- workbench is moved in/out of here by JS depending on mode -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ The Power App workbench (the actual app surface) ════════ -->
+  <div class="workbench" id="workbench">
+    <div class="sa-header">
+      <span class="logo"><span class="mark">M</span> MOEN</span>
+      <span class="title">Order Triage &amp; Management</span>
+      <span class="spacer"></span>
+      <span class="sa-chip">orders@moen.com · shared mailbox</span>
+      <span class="sa-chip">Bill Whalen</span>
+    </div>
+
+    <!-- KPI strip -->
+    <div class="kpi-strip">
+      <div class="kpi"><div class="k-label">Avg processing time</div><div class="k-value">24<small> min</small></div><div class="k-sub">▼ from 4–8 hrs (manual)</div></div>
+      <div class="kpi"><div class="k-label">Auto-processed</div><div class="k-value">72<small>%</small></div><div class="k-sub">target ≥ 70% · ▲ from 0%</div></div>
+      <div class="kpi"><div class="k-label">Exception rate</div><div class="k-value">13<small>%</small></div><div class="k-sub">target &lt; 15%</div></div>
+      <div class="kpi"><div class="k-label">Order error rate</div><div class="k-value">0.8<small>%</small></div><div class="k-sub">▼ from 3–5%</div></div>
+      <div class="kpi"><div class="k-label">In queue today</div><div class="k-value" id="kpiQueue">4</div><div class="k-sub warn">2 need review</div></div>
+    </div>
+
+    <!-- 3-column triage -->
+    <div class="triage">
+
+      <!-- Queue -->
+      <div class="col queue">
+        <div class="q-head"><span class="q-title">Inbound documents</span><span class="q-count" id="qCount">4</span></div>
+        <div class="q-tabs">
+          <span class="q-tab active" data-filter="all" onclick="filterQueue('all',this)">All</span>
+          <span class="q-tab" data-filter="validate" onclick="filterQueue('validate',this)">To validate</span>
+          <span class="q-tab" data-filter="priority" onclick="filterQueue('priority',this)">Priority</span>
+          <span class="q-tab" data-filter="messages" onclick="filterQueue('messages',this)">With messages</span>
+          <span class="q-tab" data-filter="failed" onclick="filterQueue('failed',this)">Failed / SLA</span>
+          <span class="q-tab" data-filter="created" onclick="filterQueue('created',this)">Submitted</span>
+        </div>
+        <div id="queueList"></div>
+      </div>
+
+      <!-- Document viewer -->
+      <div class="col viewer">
+        <div class="v-toolbar">
+          <span class="v-title" id="vTitle">Select a document</span>
+          <button class="vbtn" id="btnAutoExtract" onclick="autoExtract()" disabled>✨ Auto-extract all</button>
+          <button class="vbtn" id="btnValidate" onclick="runValidation()" disabled>✓ Validate</button>
+        </div>
+        <div class="v-stage" id="vStage">
+          <div class="empty-state"><div class="es-ico">📄</div><div>Pick an inbound document from the queue to start triage.</div></div>
+        </div>
+      </div>
+
+      <!-- Index / extraction panel -->
+      <div class="col index">
+        <div class="idx-head">
+          <div class="ih-title">🧾 Order index</div>
+          <div class="ih-sub" id="idxSub">Click a field on the document to capture it — or let AI extract everything.</div>
+        </div>
+        <div id="idxBody">
+          <div class="empty-state" style="padding:40px 20px;"><div class="es-ico">🧾</div><div>Fields populate here as the PO is read.</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+/* ════════════════════════════════════════════════════════════════════════
+   Order Triage & Management — interactive prototype
+   Grounded in: customers/fortunebrands/.../order_triage_management
+   Schema mirror: otm_stagedorder / otm_stagedorderline (order triage)
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ---- Sample inbound documents (Moen POs to a shared orders mailbox) ---- */
+const DOCS = [
+  {
+    id: 'FERG-88241', type: 'pdf', status: 'new',
+    from: 'po@ferguson.com', sender: 'Ferguson Enterprises', when: '8:02 AM',
+    subject: 'PO #FERG-88241 — Moen replenishment',
+    customer: 'Ferguson Enterprises, Inc.', customerMatch: true,
+    poNumber: 'FERG-88241', shipDate: '2026-06-22',
+    shipTo: '12500 Jefferson Ave\nNewport News, VA 23602',
+    instructions: 'Standard freight. Dock receiving 7am–3pm.',
+    lines: [
+      { sku:'7594ESRS', desc:'Arbor MotionSense Touchless Kitchen Faucet, Spot Resist SS', qty:48, price:289.00, match:'ok' },
+      { sku:'S6320',    desc:'Align 1-Handle Bathroom Faucet, Chrome',                  qty:120, price:149.00, match:'ok' },
+      { sku:'26100',    desc:'Engage Magnetix 6-Function Handshower',                   qty:60,  price:64.00,  match:'ok' }
+    ],
+    expect:'clean'
+  },
+  {
+    id: 'HD-2240567', type: 'email', status: 'new',
+    from: 'replenishment@homedepot.com', sender: 'The Home Depot', when: '7:41 AM',
+    subject: 'Reorder — kitchen + bath (PO HD-2240567)',
+    customer: 'Home Depot U.S.A., Inc.', customerMatch: true,
+    poNumber: 'HD-2240567', shipDate: '2026-06-25',
+    shipTo: 'RDC 5070 — 4500 Cypress Creek Pkwy\nHouston, TX 77069',
+    instructions: 'Palletize by SKU. Appointment delivery required.',
+    lines: [
+      { sku:'T2153',  desc:'Genta Posi-Temp Shower Trim Kit, Chrome', qty:200, price:98.00, match:'ok' },
+      { sku:'YB0463', desc:'Genta 24 in. Towel Bar, Chrome',          qty:150, price:24.00, match:'ok' }
+    ],
+    expect:'clean',
+    body:
+`Hi Moen team,
+
+Please process the following replenishment order for RDC 5070.
+
+PO Number: HD-2240567
+Requested ship date: 6/25/2026
+Ship to: RDC 5070 — 4500 Cypress Creek Pkwy, Houston, TX 77069
+
+Items:
+ • 200 x T2153  — Genta Posi-Temp Shower Trim Kit (Chrome)
+ • 150 x YB0463 — Genta 24" Towel Bar (Chrome)
+
+Notes: Palletize by SKU. Appointment delivery required.
+
+Thanks,
+Home Depot Replenishment`
+  },
+  {
+    id: 'REE-7781', type: 'pdf', status: 'new', priority: true,
+    from: 'orders@reece.com', sender: 'Reece USA', when: '7:18 AM',
+    subject: 'Purchase Order REE-7781',
+    customer: 'Reece USA Holdings LLC', customerMatch: true,
+    poNumber: 'REE-7781', shipDate: '2026-06-20',
+    shipTo: '2727 Paces Ferry Rd SE\nAtlanta, GA 30339',
+    instructions: 'Will-call pickup. Call dock on arrival.',
+    lines: [
+      { sku:'7594ESRS', desc:'Arbor MotionSense Touchless Kitchen Faucet', qty:24, price:289.00, match:'ok' },
+      { sku:'MX-99TBD',  desc:'Smart Shower Controller (rep wrote “new SKU?”)', qty:10, price:0, match:'fail' }
+    ],
+    expect:'exception-sku'
+  },
+  {
+    id: 'BLD-55012', type: 'email', status: 'new', hasMessage: true,
+    from: 'purchasing@build.com', sender: 'Build.com (Ferguson)', when: '6:55 AM',
+    subject: 'PO BLD-55012 (resend)',
+    customer: 'Build.com, Inc.', customerMatch: true,
+    poNumber: 'BLD-55012', shipDate: '2026-06-19',
+    shipTo: '402 Otterson Dr\nChico, CA 95928',
+    instructions: 'RESEND — please confirm receipt.',
+    lines: [
+      { sku:'S6320', desc:'Align 1-Handle Bathroom Faucet, Chrome', qty:36, price:149.00, match:'ok' }
+    ],
+    expect:'exception-dup',
+    body:
+`Resending our PO from yesterday — didn't get a confirmation.
+
+PO: BLD-55012
+Ship date: 6/19/2026
+Ship to: 402 Otterson Dr, Chico, CA 95928
+
+ • 36 x S6320 — Align 1-Handle Bathroom Faucet (Chrome)
+
+Please confirm. Thanks!`
+  },
+  {
+    id: 'LOW-9920', type: 'pdf', status: 'created',
+    from: 'orders@lowes.com', sender: "Lowe's Companies", when: 'Yesterday',
+    subject: 'PO LOW-9920', customer: "Lowe's Home Centers, LLC", customerMatch:true,
+    poNumber:'LOW-9920', shipDate:'2026-06-18', shipTo:'1000 Lowes Blvd\nMooresville, NC 28117',
+    instructions:'', lines:[{sku:'26100',desc:'Engage Magnetix Handshower',qty:300,price:64.00,match:'ok'}],
+    expect:'clean', orderId:'SO-104882'
+  }
+];
+
+/* duplicate PO ledger — BLD-55012 already processed yesterday */
+const PROCESSED_POS = new Set(['LOW-9920','BLD-55012']);
+
+let activeId = null;
+let filter = 'all';
+const captured = {};   // fields captured for active doc
+let validated = false;
+
+/* ---------- mode toggle ---------- */
+function setMode(mode){
+  document.body.className = mode;
+  document.getElementById('modeStandalone').classList.toggle('active', mode==='standalone');
+  document.getElementById('modeEmbedded').classList.toggle('active', mode==='embedded');
+  const wb = document.getElementById('workbench');
+  if(mode==='embedded'){ document.getElementById('d365Content').appendChild(wb); }
+  else { document.body.insertBefore(wb, document.getElementById('toastWrap')); }
+}
+
+/* ---------- queue render ---------- */
+function statusClass(s){ return s; }
+function statusLabel(s){ return {new:'New',extracted:'Extracted',validated:'Validated',exception:'Exception',created:'Order created'}[s]||s; }
+
+function filterQueue(f, el){
+  filter=f;
+  document.querySelectorAll('.q-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderQueue();
+}
+function visibleDocs(){
+  return DOCS.filter(d=>{
+    if(filter==='validate')  return d.status==='new' || d.status==='extracted' || d.status==='validated';
+    if(filter==='priority')  return !!d.priority && d.status!=='created';
+    if(filter==='messages')  return !!d.hasMessage && d.status!=='created';
+    if(filter==='failed')    return d.status==='exception';
+    if(filter==='created')   return d.status==='created';
+    return true;
+  });
+}
+function renderQueue(){
+  const list = document.getElementById('queueList');
+  list.innerHTML='';
+  const docs = visibleDocs();
+  docs.forEach(d=>{
+    const div=document.createElement('div');
+    div.className='q-item'+(d.id===activeId?' active':'');
+    div.onclick=()=>openDoc(d.id);
+    div.innerHTML=`
+      <div class="qi-top">
+        <span class="qi-from">${d.sender}</span>
+        <span class="qi-when">${d.when}</span>
+      </div>
+      <div class="qi-po">${d.subject}</div>
+      <div class="qi-meta">
+        <span class="doc-chip ${d.type}">${d.type==='pdf'?'📎 PDF':'✉️ Email body'}</span>
+        <span class="st ${statusClass(d.status)}">${statusLabel(d.status)}</span>
+      </div>`;
+    list.appendChild(div);
+  });
+  const needs = DOCS.filter(d=>d.status!=='created').length;
+  document.getElementById('qCount').textContent = docs.length;
+  document.getElementById('kpiQueue').textContent = needs;
+}
+
+/* ---------- open a document ---------- */
+function openDoc(id){
+  activeId=id; validated=false;
+  Object.keys(captured).forEach(k=>delete captured[k]);
+  const d=DOCS.find(x=>x.id===id);
+  renderQueue();
+  document.getElementById('vTitle').innerHTML = `${d.sender} <small>· ${d.subject}</small>`;
+  document.getElementById('btnAutoExtract').disabled = (d.status==='created');
+  document.getElementById('btnValidate').disabled = true;
+  renderDoc(d);
+  renderIndex(d);
+}
+
+/* ---------- render the document (PDF-style or email-style) ---------- */
+function hot(field, text){
+  return `<span class="hot" data-field="${field}" onclick="captureField('${field}',this)">${text}</span>`;
+}
+function renderDoc(d){
+  const stage=document.getElementById('vStage');
+  if(d.type==='pdf'){
+    const rows = d.lines.map((l,i)=>`
+      <tr>
+        <td>${i+1}</td>
+        <td>${hot('sku'+i, l.sku)}</td>
+        <td>${l.desc}</td>
+        <td>${hot('qty'+i, l.qty)}</td>
+        <td>$${l.price.toFixed(2)}</td>
+      </tr>`).join('');
+    stage.innerHTML=`
+      <div class="doc">
+        <div class="doc-letterhead">
+          <div class="co">${d.sender}<small>Purchasing Department</small></div>
+          <div class="po-box"><div class="lbl">Purchase Order</div><div class="num">${hot('po', d.poNumber)}</div></div>
+        </div>
+        <div class="doc-grid">
+          <div class="box"><div class="h">Vendor</div><div class="l">Moen Incorporated<br>25300 Al Moen Dr, North Olmsted, OH</div></div>
+          <div class="box"><div class="h">Bill to / Customer</div><div class="l">${hot('customer', d.customer)}</div></div>
+          <div class="box"><div class="h">Requested ship date</div><div class="l">${hot('shipdate', d.shipDate)}</div></div>
+          <div class="box"><div class="h">Ship to</div><div class="l">${hot('shipto', d.shipTo.replace(/\n/g,'<br>'))}</div></div>
+        </div>
+        <table class="lines">
+          <thead><tr><th>#</th><th>SKU / Item</th><th>Description</th><th>Qty</th><th>Unit price</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <div class="doc-notes"><div class="h">Special instructions</div>${hot('notes', d.instructions||'—')}</div>
+      </div>`;
+  } else {
+    stage.innerHTML=`
+      <div class="doc email-doc">
+        <div class="em-head">
+          <div><b>From:</b> ${d.from}</div>
+          <div><b>To:</b> orders@moen.com</div>
+          <div><b>Subject:</b> ${d.subject}</div>
+        </div>
+        <div class="em-body">${highlightEmail(d)}</div>
+      </div>`;
+  }
+}
+/* wrap key tokens in the email body as hotspots */
+function highlightEmail(d){
+  let b = d.body;
+  b = b.replace(d.poNumber, `‹PO›`);
+  b = b.replace(d.shipDate.replace(/-/g,'/').replace(/^2026\//,'').concat(''), '') || b;
+  // simpler: just make the PO line + each SKU clickable
+  let html = d.body
+    .replace(d.poNumber, hot('po', d.poNumber));
+  d.lines.forEach((l,i)=>{ html = html.replace(l.sku, hot('sku'+i, l.sku)); });
+  // customer hotspot on sender domain mention not reliable; add a banner instead
+  return html;
+}
+
+/* ---------- index panel ---------- */
+const FIELD_DEFS = [
+  { key:'po',       label:'PO Number',        conf:0.99 },
+  { key:'customer', label:'Customer',         conf:0.97 },
+  { key:'shipdate', label:'Requested ship date', conf:0.95 },
+  { key:'shipto',   label:'Ship-to address',  conf:0.92 },
+  { key:'notes',    label:'Special instructions', conf:0.88 }
+];
+function confClass(c){ return c>=0.95?'hi':(c>=0.85?'med':'lo'); }
+function confLabel(c){ return Math.round(c*100)+'%'; }
+
+function renderIndex(d){
+  const body=document.getElementById('idxBody');
+  if(d.status==='created'){
+    body.innerHTML = `
+      <div class="idx-section">
+        <div class="vchecks">
+          <div class="vcheck ok"><div class="vc-ico">✓</div><div class="vc-body"><div class="vc-title">Order submitted to SAP</div><div class="vc-detail">SAP Sales Order <b>${d.orderId}</b> · validated in D365</div></div></div>
+        </div>
+      </div>
+      <div class="idx-section"><div class="empty-state" style="padding:18px 6px;"><div class="es-ico">📦</div><div>This PO was auto-processed. No action needed.</div></div></div>`;
+    return;
+  }
+
+  let header = FIELD_DEFS.map(f=>fieldHTML(f, d)).join('');
+  let lines = d.lines.map((l,i)=>`
+    <div class="fld">
+      <label>Line ${i+1} — SKU / Qty</label>
+      <div class="input" id="inp-sku${i}">
+        <span class="v empty" id="v-sku${i}">—</span>
+        <span class="conf" id="c-sku${i}" style="display:none"></span>
+      </div>
+    </div>`).join('');
+
+  body.innerHTML=`
+    <div class="hint-banner" id="hintBanner">💡 Click any highlighted value on the document to index it — or hit <b>✨ Auto-extract all</b> to let AI read the whole PO.</div>
+    <div class="idx-section">
+      <div class="sec-label">📋 Order header</div>
+      ${header}
+    </div>
+    <div class="idx-section">
+      <div class="sec-label">🛒 Line items <span style="color:var(--muted-2);font-weight:600">(${d.lines.length})</span></div>
+      ${lines}
+    </div>
+    <div class="idx-section" id="valSection" style="display:none">
+      <div class="sec-label">✓ Validation against D365</div>
+      <div class="vchecks" id="vchecks"></div>
+    </div>
+    <div id="copilotMount"></div>
+    <div class="idx-actions">
+      <button class="vbtn" onclick="autoExtract()">✨ Auto-extract</button>
+      <button class="vbtn primary" id="btnCreate" onclick="createOrder()" disabled>📦 Submit to SAP</button>
+    </div>`;
+  // pulse the first uncaptured hotspot to teach the interaction
+  pulseNext();
+}
+function fieldHTML(f, d){
+  return `
+    <div class="fld">
+      <label>${f.label}</label>
+      <div class="input" id="inp-${f.key}">
+        <span class="v empty" id="v-${f.key}">— not captured —</span>
+        <span class="conf" id="c-${f.key}" style="display:none"></span>
+      </div>
+    </div>`;
+}
+
+/* value lookups for capture */
+function valueFor(field, d){
+  if(field==='po') return d.poNumber;
+  if(field==='customer') return d.customer;
+  if(field==='shipdate') return d.shipDate;
+  if(field==='shipto') return d.shipTo;
+  if(field==='notes') return d.instructions||'—';
+  if(field.startsWith('sku')){ const i=+field.slice(3); return d.lines[i].sku; }
+  if(field.startsWith('qty')){ const i=+field.slice(3); return d.lines[i].qty; }
+  return '';
+}
+
+/* ---------- click-to-index ---------- */
+function captureField(field, el){
+  const d=DOCS.find(x=>x.id===activeId); if(!d) return;
+  el.classList.remove('pulse'); el.classList.add('captured');
+
+  // qty hotspots map to the same line field row as sku in the panel
+  let panelKey = field, val = valueFor(field,d), conf=0.94;
+  if(field.startsWith('qty')){ panelKey='sku'+field.slice(3); }
+  if(field.startsWith('sku')){ const i=+field.slice(3); val = `${d.lines[i].sku}  ×  ${d.lines[i].qty}`; conf=d.lines[i].match==='fail'?0.55:0.93; }
+  else { const def=FIELD_DEFS.find(f=>f.key===field); if(def) conf=def.conf; }
+
+  setField(panelKey, val, conf);
+  captured[panelKey]=true;
+  maybeReadyToValidate(d);
+  pulseNext();
+}
+function setField(key, val, conf){
+  const v=document.getElementById('v-'+key), inp=document.getElementById('inp-'+key), c=document.getElementById('c-'+key);
+  if(!v) return;
+  v.textContent = (''+val).replace(/\n/g,', ');
+  v.classList.remove('empty');
+  inp.classList.add('filled','flash');
+  setTimeout(()=>inp.classList.remove('flash'),700);
+  c.style.display=''; c.className='conf '+confClass(conf); c.textContent=confLabel(conf);
+}
+function pulseNext(){
+  document.querySelectorAll('.hot.pulse').forEach(h=>h.classList.remove('pulse'));
+  const next=[...document.querySelectorAll('.hot:not(.captured)')][0];
+  if(next) next.classList.add('pulse');
+}
+function allCaptured(d){
+  const need = FIELD_DEFS.map(f=>f.key).concat(d.lines.map((_,i)=>'sku'+i));
+  return need.every(k=>captured[k]);
+}
+function maybeReadyToValidate(d){
+  const ready = allCaptured(d);
+  document.getElementById('btnValidate').disabled = !ready;
+  const hb=document.getElementById('hintBanner');
+  if(ready && hb){ hb.innerHTML='✅ All fields indexed. Click <b>✓ Validate</b> to check against D365.'; hb.style.background='#ecfdf5'; hb.style.borderColor='#a7f3d0'; hb.style.color='#065f46'; }
+}
+
+/* ---------- auto-extract (AI reads everything) ---------- */
+function autoExtract(){
+  const d=DOCS.find(x=>x.id===activeId); if(!d) return;
+  document.querySelectorAll('.hot').forEach(h=>{ h.classList.remove('pulse'); });
+  const order = ['po','customer','shipdate','shipto','notes', ...d.lines.map((_,i)=>'sku'+i)];
+  let t=0;
+  order.forEach(key=>{
+    setTimeout(()=>{
+      // mark doc hotspot captured
+      const hs=document.querySelector(`.hot[data-field="${key}"]`); if(hs) hs.classList.add('captured');
+      let val, conf;
+      if(key.startsWith('sku')){ const i=+key.slice(3); val=`${d.lines[i].sku}  ×  ${d.lines[i].qty}`; conf=d.lines[i].match==='fail'?0.55:0.93; }
+      else { val=valueFor(key,d); conf=(FIELD_DEFS.find(f=>f.key===key)||{}).conf||0.9; }
+      setField(key,val,conf); captured[key]=true;
+      if(key===order[order.length-1]){ maybeReadyToValidate(d); toast('✨ AI extraction complete','Read '+(FIELD_DEFS.length+d.lines.length)+' fields from the '+(d.type==='pdf'?'PDF':'email')+' in 1.2s'); }
+    }, t);
+    t+=170;
+  });
+  d.status='extracted'; renderQueue();
+}
+
+/* ---------- validation against D365 ---------- */
+function runValidation(){
+  const d=DOCS.find(x=>x.id===activeId); if(!d) return;
+  const sec=document.getElementById('valSection'); sec.style.display='';
+  const wrap=document.getElementById('vchecks');
+  const checks=[
+    { key:'cust', title:'Customer match', pending:'Searching D365 accounts…' },
+    { key:'sku',  title:'Product / SKU match', pending:'Matching against product catalog…' },
+    { key:'dup',  title:'Duplicate-PO check', pending:'Checking PO history…' }
+  ];
+  wrap.innerHTML = checks.map(c=>`
+    <div class="vcheck pending" id="vc-${c.key}">
+      <div class="vc-ico">◌</div>
+      <div class="vc-body"><div class="vc-title">${c.title}</div><div class="vc-detail" id="vcd-${c.key}">${c.pending}</div></div>
+    </div>`).join('');
+  sec.scrollIntoView({behavior:'smooth', block:'nearest'});
+
+  let isException=false, reason='';
+  // customer
+  setTimeout(()=>{
+    resolveCheck('cust', d.customerMatch, d.customerMatch
+      ? `Matched → <b>${d.customer}</b> (D365 account)`
+      : `No matching account for “${d.customer}”`);
+    if(!d.customerMatch){ isException=true; reason='Unknown Customer'; }
+  }, 700);
+  // sku
+  setTimeout(()=>{
+    const bad = d.lines.find(l=>l.match==='fail');
+    resolveCheck('sku', !bad, bad
+      ? `Unknown SKU <b>${bad.sku}</b> — not in catalog`
+      : `All ${d.lines.length} line item(s) matched the product catalog`);
+    if(bad){ isException=true; reason='Unknown SKU'; }
+  }, 1500);
+  // dup
+  setTimeout(()=>{
+    const dup = PROCESSED_POS.has(d.poNumber) && d.status!=='created';
+    resolveCheck('dup', !dup, dup
+      ? `PO <b>${d.poNumber}</b> already processed (order exists)`
+      : `No prior order found for PO ${d.poNumber}`);
+    if(dup){ isException=true; reason='Duplicate PO'; }
+
+    // finalize
+    setTimeout(()=>{
+      validated=true;
+      if(isException){
+        d.status='exception'; d.exceptionReason=reason; renderQueue();
+        showCopilot(d, reason);
+        const bc=document.getElementById('btnCreate'); if(bc) bc.disabled=true;
+        toast('⚠️ Exception caught', reason+' — routed to human review with Copilot assist', true);
+      } else {
+        d.status='validated'; renderQueue();
+        const bc=document.getElementById('btnCreate'); if(bc) bc.disabled=false;
+        clearCopilot();
+        toast('✓ Validation passed','Customer + all SKUs matched, no duplicate. Ready to submit to SAP.');
+      }
+    }, 600);
+  }, 2300);
+}
+function resolveCheck(key, ok, detail){
+  const el=document.getElementById('vc-'+key);
+  el.classList.remove('pending');
+  el.classList.add(ok?'ok':'fail');
+  el.querySelector('.vc-ico').textContent = ok?'✓':'✕';
+  document.getElementById('vcd-'+key).innerHTML=detail;
+}
+
+/* ---------- Copilot exception assist ---------- */
+function showCopilot(d, reason){
+  const mount=document.getElementById('copilotMount');
+  let sugg='', primary='';
+  if(reason==='Unknown SKU'){
+    const bad=d.lines.find(l=>l.match==='fail');
+    sugg=`The line <b>${bad.sku}</b> isn't in the product catalog. Closest catalog match by description is <b>U by Moen Smart Shower Controller (U-SHWR-CTRL)</b>. I can map this line to that SKU at list price, or flag it for product-team review.`;
+    primary='Map to U-SHWR-CTRL &amp; revalidate';
+  } else if(reason==='Duplicate PO'){
+    sugg=`PO <b>${d.poNumber}</b> was already received yesterday and created as an order. This looks like a customer re-send (“RESEND — please confirm receipt”). Recommend: <b>do not create a new order</b>; send a confirmation of the existing order instead.`;
+    primary='Send existing-order confirmation';
+  } else {
+    sugg=`I couldn't match the customer “${d.customer}”. I can create a new account from the PO header, or you can pick an existing account.`;
+    primary='Create account &amp; revalidate';
+  }
+  mount.innerHTML=`
+    <div class="copilot">
+      <div class="cp-head">🟣 Copilot — exception assist</div>
+      <div class="cp-body">
+        I reviewed this order and found a <b>${reason}</b>.
+        <div class="sugg">${sugg}</div>
+        <div class="cp-actions">
+          <button class="cp-btn apply" onclick="copilotResolve('${reason}')">${primary}</button>
+          <button class="cp-btn ghost" onclick="toast('↪ Escalated','Routed to order-management supervisor queue')">Escalate to human</button>
+        </div>
+      </div>
+    </div>`;
+}
+function clearCopilot(){ const m=document.getElementById('copilotMount'); if(m) m.innerHTML=''; }
+function copilotResolve(reason){
+  const d=DOCS.find(x=>x.id===activeId);
+  if(reason==='Duplicate PO'){
+    toast('✓ Confirmation sent','Existing order confirmed to Build.com — no duplicate created');
+    d.status='created'; d.orderId='(existing) SO-104871';
+    renderQueue(); openDoc(d.id);
+    return;
+  }
+  if(reason==='Unknown SKU'){
+    const bad=d.lines.find(l=>l.match==='fail'); if(bad){ bad.match='ok'; bad.sku='U-SHWR-CTRL'; bad.price=649.00; bad.desc='U by Moen Smart Shower Controller'; }
+    clearCopilot();
+    toast('✓ SKU mapped','Line mapped to U-SHWR-CTRL — re-running validation');
+    setField('sku'+d.lines.indexOf(bad), `${bad.sku}  ×  ${bad.qty}`, 0.96);
+    setTimeout(runValidation, 500);
+    return;
+  }
+  toast('✓ Account created','New D365 account created — re-running validation');
+  d.customerMatch=true; setTimeout(runValidation,500);
+}
+
+/* ---------- create order ---------- */
+function createOrder(){
+  const d=DOCS.find(x=>x.id===activeId); if(!d) return;
+  const so='SO-'+(105000+Math.floor(Math.random()*900));
+  d.status='created'; d.orderId=so; PROCESSED_POS.add(d.poNumber);
+  renderQueue(); openDoc(d.id);
+  toast('📦 Order submitted to SAP', `SAP Sales Order ${so} · ${d.customer} · ${d.lines.length} line(s) · ${d.type==='pdf'?'PDF':'email'} → order in 24 sec`);
+}
+
+/* ---------- toast ---------- */
+function toast(title, sub, warn){
+  const wrap=document.getElementById('toastWrap');
+  const t=document.createElement('div'); t.className='toast';
+  if(warn){ t.style.background='#3a2a0a'; t.style.color='#fde9b8'; t.style.borderLeftColor='#f5a623'; }
+  t.innerHTML=`<div>⬤</div><div><div class="t-title">${title}</div><div class="t-sub">${sub}</div></div>`;
+  wrap.appendChild(t);
+  setTimeout(()=>{ t.style.transition='opacity .4s, transform .4s'; t.style.opacity='0'; t.style.transform='translateX(20px)'; setTimeout(()=>t.remove(),400); }, 4200);
+}
+
+/* ---------- init ---------- */
+renderQueue();
+setMode('standalone');
+</script>
+</body>
+</html>
