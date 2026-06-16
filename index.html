@@ -92,8 +92,8 @@ a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}
     <!-- WATCH -->
     <section class="section">
       <div class="eyebrow">Start here</div>
-      <div class="h2">A 2-minute recap</div>
-      <div class="lead">The full flow, end to end — an order arrives, AI reads it, validation runs against your customers and products, the order is created, and payment-card data is protected. Best watched first, then open the prototype below.</div>
+      <div class="h2">A 60-second recap</div>
+      <div class="lead">The full flow, end to end — an order arrives, AI reads it, validation runs against your customers and products, and the order is created. Best watched first, then open the prototype below.</div>
       <div class="videowrap">
         <video controls preload="metadata" src="video/order-triage-demo.mp4">
           Your browser can't play embedded video — <a href="video/order-triage-demo.mp4">download the recap (MP4)</a>.
@@ -111,9 +111,9 @@ a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}
         <article class="card">
           <div class="top">🎬</div>
           <div class="body">
-            <div class="kind">Video · 2 min</div>
-            <div class="name">Narrated demo recap</div>
-            <div class="desc">The fast overview — channel capture, AI extraction, validation, exception handling, and one-click card protect.</div>
+            <div class="kind">Video · ~1 min</div>
+            <div class="name">Demo recap</div>
+            <div class="desc">The fast overview — intake, AI extraction, validation, auto-create to SAP, and exception handling with Copilot assist.</div>
           </div>
           <div class="foot"><a class="btn btn-primary" href="video/order-triage-demo.mp4">▶ Watch</a></div>
         </article>
@@ -202,12 +202,11 @@ a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}
           <rect class="ab" x="190" y="158" width="180" height="56" rx="10"/>
           <text class="at" x="280" y="180" text-anchor="middle">Validation</text>
           <text class="ats" x="280" y="197" text-anchor="middle">customer · product · duplicate</text>
-          <rect class="ab" x="404" y="78" width="176" height="56" rx="10"/>
-          <text class="at" x="492" y="100" text-anchor="middle">Triage workbench</text>
-          <text class="ats" x="492" y="117" text-anchor="middle">review · index · protect</text>
-          <rect class="ab" x="404" y="158" width="176" height="56" rx="10"/>
-          <text class="at" x="492" y="180" text-anchor="middle">Exceptions</text>
-          <text class="ats" x="492" y="197" text-anchor="middle">person · optional Case</text>
+          <rect class="ab" x="404" y="78" width="176" height="136" rx="10"/>
+          <text class="at" x="492" y="120" text-anchor="middle">Triage workbench</text>
+          <text class="ats" x="492" y="141" text-anchor="middle">review · index · validate</text>
+          <text class="ats" x="492" y="160" text-anchor="middle">exceptions handled here</text>
+          <text class="ats" x="492" y="178" text-anchor="middle">person · Copilot · optional Case</text>
           <!-- order store -->
           <rect class="abl" x="640" y="84" width="120" height="56" rx="10"/>
           <text class="atw" x="700" y="106" text-anchor="middle">Order created</text>
@@ -219,13 +218,13 @@ a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}
           <!-- arrows -->
           <path class="aln" d="M134,144 L190,128" marker-end="url(#ah)"/>
           <path class="aln" d="M280,134 L280,158" marker-end="url(#ah)"/>
-          <path class="aln" d="M370,186 L404,186" marker-end="url(#ah)"/>
-          <path class="aln" d="M370,106 L404,106" marker-end="url(#ah)"/>
-          <path class="aln" d="M580,106 L640,108" marker-end="url(#ah)"/>
-          <path class="aln" d="M580,186 L640,192" marker-end="url(#ah)"/>
+          <path class="aln" d="M370,106 L404,120" marker-end="url(#ah)"/>
+          <path class="aln" d="M370,186 L404,172" marker-end="url(#ah)"/>
+          <path class="aln" d="M580,120 L640,108" marker-end="url(#ah)"/>
+          <path class="aln" d="M580,172 L640,192" marker-end="url(#ah)"/>
           <path class="aln" d="M700,140 L700,166" marker-end="url(#ah)"/>
         </svg>
-        <div class="archnote">Email lands → AI extracts → validated against your Dynamics&nbsp;365 customers &amp; products → clean orders are created and exceptions routed to a person. A live dashboard tracks volume, processing time, and SLA. The triage workbench runs standalone or embedded in Customer Service.</div>
+        <div class="archnote">Email lands → AI extracts → validated against your Dynamics&nbsp;365 customers &amp; products → clean orders are created automatically, and exceptions are handled by a person in the <strong>same triage workbench</strong> (with Copilot assist). A live dashboard tracks volume, processing time, and SLA. The workbench runs standalone or embedded in Customer Service.</div>
       </div>
     </section>
 
